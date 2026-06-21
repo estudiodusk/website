@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portfólio — Dusk Estúdio Criativo</title>
+  <meta name="description" content="Projetos de branding, conteúdo e eventos corporativos criados pelo Dusk Estúdio Criativo.">
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<nav id="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">Dusk<em>.</em></a>
+    <ul class="nav-links">
+      <li><a href="sobre.html">Sobre</a></li>
+      <li><a href="servicos.html">Serviços</a></li>
+      <li><a href="processo.html">Processo</a></li>
+      <li><a href="portfolio.html">Portfólio</a></li>
+      <li><a href="clientes.html">Clientes</a></li>
+      <li><a href="contato.html" class="cta">Falar com o Dusk</a></li>
+    </ul>
+    <div class="burger" id="burger"><span></span><span></span><span></span></div>
+  </div>
+</nav>
+<div class="nav-mobile" id="nav-mobile">
+  <a href="index.html">Home</a>
+  <a href="sobre.html">Sobre</a>
+  <a href="servicos.html">Serviços</a>
+  <a href="processo.html">Processo</a>
+  <a href="clientes.html">Clientes</a>
+  <a href="contato.html">Contato</a>
+</div>
+
+<section class="page-hero s-dark">
+  <div class="orb orb-1"></div>
+  <div class="container">
+    <div class="page-hero-content">
+      <span class="label anim">Portfólio</span>
+      <h1 class="anim d1">Trabalho que fala por si só.</h1>
+      <p class="anim d2">Cada projeto representa uma marca que passou a comunicar mais valor. Essa é a única métrica que importa para nós.</p>
+    </div>
+  </div>
+</section>
+
+<section class="s-dark" style="padding: 40px 0 0;">
+  <div class="container">
+    <div class="anim" style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <button onclick="filterPortfolio('all')" class="filter-btn active" data-filter="all">Todos</button>
+      <button onclick="filterPortfolio('marca')" class="filter-btn" data-filter="marca">Design de Marcas</button>
+      <button onclick="filterPortfolio('conteudo')" class="filter-btn" data-filter="conteudo">Conteúdo</button>
+      <button onclick="filterPortfolio('evento')" class="filter-btn" data-filter="evento">Eventos</button>
+    </div>
+  </div>
+</section>
+
+<style>
+  .filter-btn {
+    padding: 9px 18px; border-radius: 8px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    color: var(--silver); font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: all 0.3s ease;
+    font-family: var(--font-b);
+  }
+  .filter-btn:hover, .filter-btn.active {
+    background: rgba(147,197,253,0.08);
+    border-color: rgba(147,197,253,0.25);
+    color: var(--accent-ice);
+  }
+  .pf-item { transition: opacity 0.4s ease, transform 0.4s ease; }
+  .pf-item.hidden { opacity: 0; pointer-events: none; transform: scale(0.96); position: absolute; visibility: hidden; }
+</style>
+
+<section class="portfolio-full s-dark" style="padding-top: 48px;">
+  <div class="container">
+    <div class="portfolio-full-grid" id="portfolio-grid" style="position: relative;">
+
+      <div class="pf-card pf-item anim" data-cat="marca">
+        <div class="pf-card-inner pf-1">
+          <span class="pf-tag">Design de Marcas</span>
+          <h3>Nexum</h3>
+          <p>Identidade visual completa para consultoria financeira B2B</p>
+        </div>
+        <div class="pf-overlay"><div class="pf-overlay-inner"><span>Ver Projeto</span></div></div>
+      </div>
+
+      <div class="pf-card pf-item anim d1" data-cat="marca">
+        <div class="pf-card-inner pf-2">
+          <span class="pf-tag">Design de Marcas</span>
+          <h3>Verdura Co.</h3>
+          <p>Branding premium para rede de alimentação saudável</p>
+        </div>
+        <div class="pf-overlay"><div class="pf-overlay-inner"><span>Ver Projeto</span></div></div>
+      </div>
+
+      <div class="pf-card pf-item anim" data-cat="conteudo">
+        <div class="pf-card-inner pf-3">
+          <span class="pf-tag">Núcleo de Conteúdos</span>
+          <h3>Alto Group</h3>
+          <p>Sistema de conteúdo mensal para holding empresarial</p>
+        </div>
+        <div class="pf-overlay"><div class="pf-overlay-inner"><span>Ver Projeto</span></div></div>
+      </div>
+
+      <div class="pf-card pf-item anim d1" data-cat="evento">
+        <div class="pf-card-inner pf-4">
+          <span class="pf-tag">Cobertura de Eventos</span>
+          <h3>Summit Empresarial 2023</h3>
+          <p>Cobertura completa de evento com 400 executivos</p>
+        </div>
+        <div class="pf-overlay"><div class="pf-overlay-inner"><span>Ver Projeto</span></div></div>
+      </div>
+
+      <div class="pf-card pf-item anim" data-cat="marca">
+        <div class="pf-card-inner pf-5">
+          <span class="pf-tag">Design de Marcas</span>
+          <h3>Forge Studio</h3>
+          <p>Identidade visual para estúdio de arquitetura de interiores</p>
+        </div>
+        <div class="pf-overlay"><div class="pf-overlay-inner"><span>Ver Projeto</span></div></div>
+      </div>
+
+      <div class="pf-card pf-item anim d1" data-cat="conteudo">
+        <div class="pf-card-inner pf-6">
+          <span class="pf-tag">Núcleo de Conteúdos</span>
+          <h3>Clarim Investimentos</h3>
+          <p>Conteúdo financeiro educativo para Instagram e LinkedIn</p>
+        </div>
+        <div class="pf-overlay"><div class="pf-overlay-inner"><span>Ver Projeto</span></div></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="cta-section s-navy">
+  <div class="container">
+    <div class="cta-card glass anim">
+      <span class="label" style="display:block;text-align:center;">Próximo projeto</span>
+      <h2>O seu negócio pode ser<br>o próximo aqui.</h2>
+      <p>Vamos criar uma marca que você vai querer mostrar para todo mundo.</p>
+      <div class="cta-btns">
+        <a href="contato.html" class="btn btn-primary">Iniciar Projeto</a>
+        <a href="servicos.html" class="btn btn-outline">Ver Serviços</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">Dusk<em>.</em></div>
+        <p class="footer-desc">Estúdio especializado em criar marcas fortes para negócios de alto padrão.</p>
+        <div class="footer-social"><a href="#">ig</a><a href="#">in</a><a href="#">be</a></div>
+      </div>
+      <div class="footer-col">
+        <h5>Páginas</h5>
+        <ul>
+          <li><a href="sobre.html">Sobre</a></li>
+          <li><a href="servicos.html">Serviços</a></li>
+          <li><a href="processo.html">Processo</a></li>
+          <li><a href="portfolio.html">Portfólio</a></li>
+          <li><a href="clientes.html">Clientes</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Serviços</h5>
+        <ul>
+          <li><a href="servicos.html">Design de Marcas</a></li>
+          <li><a href="servicos.html">Núcleo de Conteúdos</a></li>
+          <li><a href="servicos.html">Cobertura de Eventos</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Contato</h5>
+        <ul>
+          <li><a href="contato.html">Iniciar projeto</a></li>
+          <li><a href="mailto:contato@estudiodusk.com.br">contato@estudiodusk.com.br</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2024 Dusk Estúdio Criativo. Todos os direitos reservados.</p>
+      <p>Feito com propósito.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+<script>
+  function filterPortfolio(cat) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector(`[data-filter="${cat}"]`).classList.add('active');
+    document.querySelectorAll('.pf-item').forEach(item => {
+      if (cat === 'all' || item.dataset.cat === cat) {
+        item.classList.remove('hidden');
+      } else {
+        item.classList.add('hidden');
+      }
+    });
+  }
+</script>
+</body>
+</html>
