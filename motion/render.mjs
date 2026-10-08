@@ -34,7 +34,7 @@ if (process.argv[2] === '--cues') {
 const outFile = process.argv[2] || path.join(dir, 'dusk-intro.mp4');
 const fps = +(process.argv[3] || 30), workers = +(process.argv[4] || 4);
 const tmp = path.join(dir, '.frames'); rmSync(tmp, { recursive: true, force: true }); mkdirSync(tmp);
-const total = Math.round(TOTAL * fps);
+const { readFileSync } = await import('fs'); const total = Math.round(JSON.parse(readFileSync(path.join(dir, 'timeline.json'))).end * fps);
 const b = await launch();
 await Promise.all(Array.from({ length: workers }, async (_, w) => {
   const p = await page(b);
