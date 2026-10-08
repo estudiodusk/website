@@ -1,6 +1,7 @@
 """Trilha + efeitos sonoros do DUSK (síntese procedural, sem samples de terceiros).
 usage: python3 audio.py out.wav"""
 import sys, json, os, numpy as np, wave
+CLEAN='--clean' in sys.argv   # só música + assinatura do logo (sem cliques, digitação, câmera, transições)
 tl=json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)),'timeline.json')))  # tempos vêm do HTML (render.mjs --cues)
 SR=44100; T=tl['end']; N=int(SR*T)
 rng=np.random.default_rng(7)
@@ -185,13 +186,13 @@ bs.to_music(sc,1.0); st.to_music(sc,1.0); pd.to_music(sc,1.0); ar.to_music(sc,1.
 
 # =====================  TRANSIÇÕES / IMPACTOS (musicais, sem "whoosh" genérico)  =====================
 fx=Layer()
-fx.add(riser(1.7,300,9000,1),T1-1.7,0,.16,.35)
-fx.add(sub(1.4,66,38,6),T1,0,.55,.1)                     # drop
-fx.add(downlifter(.9,6000,300,1),T1,0,.10,.3)
-fx.add(riser(.6,500,6500,1),T2-.6,0,.10,.3)
-fx.add(riser(1.0,300,8000,1),T3-1.0,0,.14,.3)
-fx.add(sub(1.0,64,40,7),T3,0,.38,.1)
-fx.add(downlifter(1.1,8000,250,1),T4,0,.12,.35)
+if not CLEAN: fx.add(riser(1.7,300,9000,1),T1-1.7,0,.16,.35)
+if not CLEAN: fx.add(sub(1.4,66,38,6),T1,0,.55,.1)                     # drop
+if not CLEAN: fx.add(downlifter(.9,6000,300,1),T1,0,.10,.3)
+if not CLEAN: fx.add(riser(.6,500,6500,1),T2-.6,0,.10,.3)
+if not CLEAN: fx.add(riser(1.0,300,8000,1),T3-1.0,0,.14,.3)
+if not CLEAN: fx.add(sub(1.0,64,40,7),T3,0,.38,.1)
+if not CLEAN: fx.add(downlifter(1.1,8000,250,1),T4,0,.12,.35)
 fx.add(riser(G-(T4+.6),200,10000,1),T4+.6,0,.17,.4)       # sobe até a assinatura
 fx.add(tone_riser(G-(T4+.6),160,1400),T4+.6,0,.05,.4)
 fx.add(sub(2.6,70,34,4),G,0,.85,.25)                      # assinatura do logo (sub + sinos)
@@ -220,22 +221,22 @@ def key_snd(t0,heavy=False):
 for t0 in tl['keys']: key_snd(t0)
 for t0 in tl['sp']:                                        # barra de espaço: mais grave e cheia
     ty.add(thock(110,.13),t0,0,.60,.05); ty.add(click(1500,.04,1.0),t0,0,.30,.1)
-ty.to_fx(1.0)
+if not CLEAN: ty.to_fx(1.0)
 cam=Layer()
 cl=[(t0,1.0+.06*((i%3)-1)) for i,t0 in enumerate(tl['lines'])]
 cl+=[(tl['title']+.12,1.1)]
 for i,s0 in enumerate(tl['cards']): cl+=[(s0+.4,.95+.05*i),(s0+.68,1.15)]
 cl+=[(tl['sj'][0]+.12,1.0),(tl['sj'][1]+.12,.95),(tl['ao']+.1,1.2)]
 for t0,p in cl: cam.add(shutter(p),t0,rng.uniform(-.25,.25),.17,.12)
-cam.to_fx(1.0)
+if not CLEAN: cam.to_fx(1.0)
 pen=Layer()
 pen.add(burst(520,1800,7000,5),tl['under'][0],0,.35,.15)
 pen.add(burst(520,900,3200,6),tl['under'][0]+.05,.2,.18,.1)
-pen.to_fx(1.0)
+if not CLEAN: pen.to_fx(1.0)
 mi=Layer()
 mi.add(click(1500,.05,1.0),tl['lock'][0]+.45,0,.12,.1)    # moldura trava
 mi.add(click(2400,.03,1.0),tl['pill']+.15,0,.08,.2)
-mi.to_fx(1.0)
+if not CLEAN: mi.to_fx(1.0)
 
 # ---- reverb sintético (cauda ~2.4s) ----
 irn=int(SR*2.6); x=np.arange(irn)/SR
@@ -255,6 +256,6 @@ mixL*=fade; mixR*=fade
 pk=max(np.abs(mixL).max(),np.abs(mixR).max()); mixL/=pk; mixR/=pk
 mixL=np.tanh(mixL*1.4)/np.tanh(1.4)*.9; mixR=np.tanh(mixR*1.4)/np.tanh(1.4)*.9
 st=np.stack([mixL,mixR],1); pcm=(st*32767).astype('<i2')
-with wave.open(sys.argv[1],'wb') as w:
+with wave.open([x for x in sys.argv[1:] if not x.startswith('--')][0],'wb') as w:
     w.setnchannels(2); w.setsampwidth(2); w.setframerate(SR); w.writeframes(pcm.tobytes())
 print('ok')
