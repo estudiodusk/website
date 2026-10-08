@@ -138,7 +138,7 @@ for t0 in beats(T1,T4,1.0,.5): dr.add(hat(.11,6000,38),t0,.2,.16,.1)            
 for t0 in beats(T1,T4,.5,.25): dr.add(hat(.04,8000,140),t0,-.2,.05,.05)           # semicolcheias fantasma
 for t0 in beats(T3,T4,.25,.0): dr.add(hat(.03,9000,200),t0,rng.uniform(-.5,.5),.04,.05)   # galeria: shaker 16ths
 # build-up (2.0→4.0): hats crescendo + rufar de caixa na última batida
-for t0 in beats(2.0,T1,.5,.0): dr.add(hat(.04,8000,150),t0,0,.04+.08*(t0-2.0)/2.0,.1)
+for t0 in beats(T1-1.5,T1,.5,.0): dr.add(hat(.04,8000,150),t0,0,.04+.08*(t0-(T1-1.5))/1.5,.1)
 for k,t0 in enumerate(beats(T1-beat,T1,.25,.0)): dr.add(clap(.16),t0,0,.12+.06*k,.2)
 # viradas curtas antes de T2 / T3 / T4
 for k,t0 in enumerate(beats(T2-beat,T2,.25,.0)): dr.add(clap(.16),t0,0,.10+.04*k,.2)
@@ -212,14 +212,15 @@ def click(f=2600,d=.03,gain=1.0):
     return (n*e*.7+np.sin(2*np.pi*f*tt(d))*e*.55)*gain
 def thock(f=190,d=.07): return np.sin(2*np.pi*f*tt(d))*np.exp(-tt(d)*52)
 ty=Layer()
-for i,t0 in enumerate(tl['keys']):
-    big=i>=13
-    f=rng.uniform(2300,3300) if not big else rng.uniform(1800,2400)
-    ty.add(click(f,.03,1.0),t0,rng.uniform(-.35,.35),.26 if not big else .30,.15)
-    ty.add(thock(rng.uniform(150,210) if not big else rng.uniform(110,150),.08),t0,0,.20 if not big else .26,.05)
-for t0 in tl['sp']:                                        # barra de espaço: mais grave e "cheia"
-    ty.add(thock(100,.11),t0,0,.26,.05); ty.add(click(1600,.04,1.0),t0,0,.10,.1)
-ty.to_fx(.62)
+def key_snd(t0,heavy=False):
+    f=rng.uniform(2200,3300)
+    ty.add(click(f,.032,1.0),t0,rng.uniform(-.3,.3),.55,.15)
+    ty.add(thock(rng.uniform(170,240),.09),t0,0,.50,.05)
+    ty.add(burst(10,1500,6000,320),t0+.004,rng.uniform(-.3,.3),.30,.1)
+for t0 in tl['keys']: key_snd(t0)
+for t0 in tl['sp']:                                        # barra de espaço: mais grave e cheia
+    ty.add(thock(110,.13),t0,0,.60,.05); ty.add(click(1500,.04,1.0),t0,0,.30,.1)
+ty.to_fx(1.0)
 cam=Layer()
 cl=[(t0,1.0+.06*((i%3)-1)) for i,t0 in enumerate(tl['lines'])]
 cl+=[(tl['title']+.12,1.1)]
@@ -227,6 +228,10 @@ for i,s0 in enumerate(tl['cards']): cl+=[(s0+.4,.95+.05*i),(s0+.68,1.15)]
 cl+=[(tl['sj'][0]+.12,1.0),(tl['sj'][1]+.12,.95),(tl['ao']+.1,1.2)]
 for t0,p in cl: cam.add(shutter(p),t0,rng.uniform(-.25,.25),.17,.12)
 cam.to_fx(1.0)
+pen=Layer()
+pen.add(burst(520,1800,7000,5),tl['under'][0],0,.35,.15)
+pen.add(burst(520,900,3200,6),tl['under'][0]+.05,.2,.18,.1)
+pen.to_fx(1.0)
 mi=Layer()
 mi.add(click(1500,.05,1.0),tl['lock'][0]+.45,0,.12,.1)    # moldura trava
 mi.add(click(2400,.03,1.0),tl['pill']+.15,0,.08,.2)

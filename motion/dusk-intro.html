@@ -41,11 +41,12 @@ canvas#bg{position:absolute;inset:0}
 /* máscara de revelação tipográfica */
 .mk{display:inline-block;overflow:clip;padding:.1em .14em .22em;margin:-.1em -.14em -.22em;vertical-align:baseline}
 .mk>span{display:inline-block;will-change:transform}
+.n7{font-family:var(--sans);font-style:normal;font-weight:700;font-size:.92em;letter-spacing:-.04em;color:#fff;-webkit-text-fill-color:#fff;margin-right:.08em}
 
 /* S1 — digitação */
-#typed{left:96px;top:800px}
+#typed{left:96px;top:910px;width:888px;text-align:center}
 .tyl{position:relative;white-space:nowrap;overflow:clip;padding:.1em .16em .24em 0;margin:-.1em -.16em -.24em 0}
-#ty1{font:500 88px/100px var(--sans);color:#fff}
+#ty1{font:500 84px/100px var(--sans);color:#fff}
 #ty2{font:italic 400 300px/280px var(--serif)}
 .ch{display:inline-block;will-change:transform,opacity,filter}
 #caret{position:absolute;left:0;top:0;width:3px;height:70px;background:var(--ice);box-shadow:0 0 14px rgba(147,197,253,.55);opacity:0}
@@ -61,12 +62,15 @@ canvas#bg{position:absolute;inset:0}
 #light{position:absolute;inset:0;background:#F7FAFF;visibility:hidden;overflow:hidden}
 #light::before{content:"";position:absolute;inset:0;background-image:repeating-linear-gradient(90deg,rgba(6,20,43,.07) 0 1px,transparent 1px 148px);background-position:96px 0}
 #head{position:absolute;left:0;top:560px;width:1080px;padding:0 96px;display:flex;flex-direction:column}
-.hl{display:flex;align-items:baseline;gap:30px;white-space:nowrap}
+.hl{position:relative;display:flex;align-items:baseline;gap:30px;white-space:nowrap}
 .hl.end{justify-content:flex-end}
 .lsans{font-family:var(--sans);font-weight:500;color:var(--ink);line-height:1}
 .lserif{font-family:var(--serif);font-style:italic;font-weight:400;line-height:1;letter-spacing:-.01em;
   background:linear-gradient(100deg,#1B3A82 0%,#2F68E0 40%,#1B3A82 62%,#6AA0F8 100%);background-size:260% 100%;
   -webkit-background-clip:text;background-clip:text;color:transparent}
+.ul{position:absolute;left:0;bottom:2px;height:16px;pointer-events:none}
+.ul svg{overflow:visible;display:block}
+.ul path{fill:none;stroke:#2F68E0;stroke-width:4;stroke-linecap:round}
 .hl .rl{flex:1;height:1.5px;background:rgba(6,20,43,.45);transform-origin:0 50%;align-self:center;margin-top:60px}
 #edge2{position:absolute;top:0;bottom:0;width:1px;background:rgba(147,197,253,.9);visibility:hidden}
 #edge2::before{content:"";position:absolute;right:0;top:0;bottom:0;width:90px;background:linear-gradient(to left,rgba(3,9,18,.22),transparent)}
@@ -122,7 +126,7 @@ canvas#bg{position:absolute;inset:0}
   </div>
 
   <!-- S3 — frentes -->
-  <div class="abs" id="tit3" style="left:96px;top:420px"><span class="mk"><span class="serif" style="font-size:96px">O que construímos.</span></span></div>
+  <div class="abs" id="tit3" style="left:96px;top:420px"><span class="mk"><span class="serif" style="font-size:96px"><b class="n7">+7</b> anos construindo:</span></span></div>
   <div id="cards"></div>
 
   <!-- S4 — galeria -->
@@ -154,15 +158,15 @@ const W=1080,H=1920;
 /* ---------- linha do tempo (fonte única: o áudio lê estes mesmos tempos via timeline.json) ---------- */
 const TL={
   bpm:120,
-  // "Olá, nós somos o Dusk." — 18 teclas (sem espaços) + espaços com batida própria
-  keys:[.40,.50,.58,.72, .98,1.06,1.15, 1.32,1.40,1.48,1.57,1.65, 1.88, 2.30,2.46,2.63,2.80,3.02],
-  sp:[.86,1.24,1.78,2.16],
-  caretOut:[3.25,3.5], rule1:[3.35,3.9], t1:[4.0,4.8],                  // T1: linha vira máscara branca (drop)
-  lines:[5.0,5.5,6.0,6.5,7.0,7.5], t2:[9.5,10.2],                       // T2: empurrão horizontal
-  title:10.0, cards:[10.0,11.0,12.0], t3:[15.0,15.7],                   // T3: câmera avança
-  rows:[15.0,15.1,15.2,15.3,15.4], t4:[21.0,21.7],                      // T4: fileiras colapsam na linha
-  sj:[22.2,22.6], ao:23.0, ruleIn:[21.3,21.8], line:[23.4,24.0], settle:[24.4,24.9],
-  glyph:24.0, lock:[24.7,25.3], pill:25.5, end:27.0
+  // "Olá, nós somos o Dusk." — 18 teclas (sem espaços), todas na mesma linha
+  keys:[.30,.37,.44,.52, .78,.85,.92, 1.10,1.17,1.24,1.31,1.38, 1.58, 1.90,1.98,2.06,2.14,2.24],
+  sp:[.64,1.01,1.48,1.76],
+  caretOut:[2.45,2.7], rule1:[2.55,3.0], t1:[3.0,3.8],                  // T1: linha vira máscara branca (drop)
+  lines:[4.0,4.5,5.0,5.5,6.0,6.5], under:[5.1,5.95], t2:[8.5,9.2],      // T2: empurrão horizontal
+  title:9.0, cards:[9.0,10.0,11.0], t3:[14.0,14.7],                     // T3: câmera avança
+  rows:[14.0,14.1,14.2,14.3,14.4], t4:[20.0,20.7],                      // T4: fileiras colapsam na linha
+  sj:[21.2,21.6], ao:22.0, ruleIn:[20.3,20.8], line:[22.4,23.0], settle:[23.4,23.9],
+  glyph:23.0, lock:[23.7,24.3], pill:24.5, end:26.0
 };
 const T=TL.end;
 const APPS=Array.from({length:22},(_,i)=>'app-'+(i+1));   // acrescente aqui novas imagens (assets/apps/app-N.jpg)
@@ -197,8 +201,8 @@ function typeLine(host,str,cls){
     return s;
   });
 }
-const ch1=typeLine($('ty1'),'Olá, nós somos o','');
-const ch2=typeLine($('ty2'),'Dusk.','gr');
+const ch1=typeLine($('ty1'),'Olá, nós somos o Dusk.','');
+const ch2=[];
 const allCh=[...ch1,...ch2];
 
 // S2 manifesto — escalas e alinhamentos variados
@@ -218,6 +222,7 @@ const headLines=HL.map((l,li)=>{
     m.appendChild(sp);d.appendChild(m);return sp;
   });
   let rl=null;
+  if(li===2){rl=document.createElement('div');rl.className='ul';d.appendChild(rl)}
   $('head').appendChild(d);
   return {words,rl,sans:l.w.map(x=>x[1]==='s')};
 });
@@ -341,7 +346,7 @@ function drawBg(t){
   cx.globalCompositeOperation='source-over';
   // S1: régua que nasce do cursor e vira a máscara branca
   const r1=oQ(seg(t,TL.rule1[0],TL.rule1[1]));
-  pline(1250,96,984,1-seg(t,TL.t1[0],TL.t1[0]+.35),r1,seg(t,TL.rule1[0]+.1,TL.rule1[1])*(1-seg(t,TL.t1[0],TL.t1[0]+.4)));
+  pline(1040,96,984,1-seg(t,TL.t1[0],TL.t1[0]+.35),r1,seg(t,TL.rule1[0]+.1,TL.rule1[1])*(1-seg(t,TL.t1[0],TL.t1[0]+.4)));
   // S5: a mesma linha, agora base do logotipo
   const L=lineState(t);
   if(t>=TL.ruleIn[0])pline(L.y,L.x0,L.x1,1,L.grow,seg(t,TL.glyph-.2,TL.glyph+.4));
@@ -366,7 +371,7 @@ function render(t){
 
   /* clip da cena clara (T1 abre a partir da régua; T2 recua para a esquerda) */
   const e1=ioC(seg(t,...TL.t1)), e2=ioC(seg(t,...TL.t2));
-  const cTop=1250*(1-e1), cBot=670*(1-e1), cRight=W*e2;
+  const cTop=1040*(1-e1), cBot=880*(1-e1), cRight=W*e2;
   const light=$('light');
   light.style.visibility=(e1<=0||e2>=1)?'hidden':'visible';
   light.style.clipPath=`inset(${cTop}px ${cRight}px ${cBot}px 0)`;
@@ -376,7 +381,7 @@ function render(t){
 
   /* S1 — "Nós somos Dusk" */
   {
-    $('ty1').style.letterSpacing=lerp(.07,-.025,oQ(seg(t,.4,3.2)))+'em';
+    $('ty1').style.letterSpacing=lerp(.07,-.02,oQ(seg(t,.3,2.6)))+'em';
     const exitT=TL.t1[0]-.1;
     let last=null;
     allCh.forEach((c,i)=>{
@@ -391,7 +396,7 @@ function render(t){
         c.style.textShadow=gk>0?`0 0 ${gk*22}px rgba(147,197,253,${gk*.85})`:'none';}
       if(kt<=t&&ko<.05)last=c;
     });
-    $('ty2').querySelectorAll('.gr').forEach((c,i)=>{c.style.backgroundPosition=`${lerp(100,0,seg(t,TL.keys[13],TL.t1[0]))+i*12}% 0`});
+    $('ty2').querySelectorAll('.gr').forEach((c,i)=>{c.style.backgroundPosition=`${lerp(100,0,seg(t,TL.keys[0],TL.t1[0]))+i*12}% 0`});
     // cursor
     const car=$('caret');
     const ci=seg(t,.15,.3), co=1-ioC(seg(t,...TL.caretOut));
@@ -406,16 +411,27 @@ function render(t){
       const P=pos(last), Q=prev?pos(prev):{x:0,big:false,top:last.parentNode.offsetTop};
       const gk=oQ(seg(t,+last.dataset.kt,+last.dataset.kt+.07));
       x=(prev&&Q.big===P.big)?lerp(Q.x,P.x,gk):P.x;
-      hgt=P.big?220:74;y=P.top+(P.big?46:14);
-    }else{x=0;y=14;hgt=74}
-    if(t>=TL.keys[13]-.05&&!last){x=0;y=$('ty2').offsetTop+46;hgt=220}
-    const sq=lastT>-9?1+(1-oQ(seg(t,lastT,lastT+.12)))*1.4:1;
+      hgt=62;y=P.top+20;
+    }else{x=ch1[0].parentNode.offsetLeft+ch1[0].offsetLeft-4;y=20;hgt=62}
+        const sq=lastT>-9?1+(1-oQ(seg(t,lastT,lastT+.12)))*1.4:1;
     car.style.width=(3*sq)+'px';
     car.style.transform=`translate3d(${x}px,${y}px,0) scaleY(${co})`;car.style.height=hgt+'px';car.style.opacity=vis;
   }
 
   /* S2 — manifesto (cena clara) */
   {
+    {
+      const hl=headLines[2],u=hl.rl;
+      if(!u.firstChild){
+        const m0=hl.words[0].parentNode,m1=hl.words[1].parentNode;
+        const x0=m0.offsetLeft+8,w=(m1.offsetLeft+m1.offsetWidth)-m0.offsetLeft-16;
+        u.style.left=x0+'px';u.style.width=w+'px';
+        u.innerHTML=`<svg width="${w}" height="16" viewBox="0 0 ${w} 16"><path pathLength="1" stroke-dasharray="1" d="M2 10 C ${w*.18} 4, ${w*.34} 13, ${w*.52} 8 S ${w*.84} 5, ${w-3} 9"/></svg>`;
+      }
+      const q=oQ(seg(t,...TL.under)),sl=ioC(seg(t,TL.t2[0],TL.t2[1]));
+      u.firstChild.firstChild.style.strokeDashoffset=String(1-q);
+      u.style.transform=`translateX(${-sl*(110+2*34)}px)`;
+    }
     headLines.forEach((hl,i)=>{
       const t0=TL.lines[i];
       hl.words.forEach((w,j)=>{
@@ -460,7 +476,7 @@ function render(t){
     const inn=ioC(seg(t,TL.rows[0]-.1,TL.rows[4]+.9));
     const o4=ioC(seg(t,...TL.t4));
     g.style.visibility=(t<TL.rows[0]-.15||o4>=1)?'hidden':'visible';
-    const beat=60/TL.bpm, ph=((t-TL.rows[0])/beat)%1, pulse=t>TL.rows[4]+.4&&o4<=0?Math.pow(1-ph,3)*.028:0;
+    const pulse=0;
     tilt.style.transform=`rotate(${lerp(-15,-9,inn)*(1-o4)}deg) scale(${lerp(.72,1.1,inn)-o4*.1+pulse})`;
     const mid=Math.floor(rowEls.length/2);
     rowEls.forEach((row,j)=>{
