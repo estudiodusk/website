@@ -36,7 +36,7 @@ canvas#bg{position:absolute;inset:0}
 .serif{font-family:var(--serif);font-style:italic;font-weight:400;font-size:122px;letter-spacing:-.01em;line-height:1;
   background:linear-gradient(100deg,#7DB3F7 0%,#EFF6FF 40%,#93C5FD 60%,#5B8DEF 100%);background-size:260% 100%;
   -webkit-background-clip:text;background-clip:text;color:transparent}
-.line{height:136px;display:flex;align-items:baseline;gap:30px;white-space:nowrap}
+.line{height:108px;display:flex;align-items:baseline;gap:30px;white-space:nowrap}
 .w{display:inline-block;will-change:transform,opacity,filter}
 .tag{font-family:var(--sans);font-weight:500;font-size:22px;letter-spacing:.42em;text-transform:uppercase;color:var(--ice);white-space:nowrap}
 
@@ -49,11 +49,15 @@ canvas#bg{position:absolute;inset:0}
 #vig{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 48%,transparent 40%,rgba(1,4,10,.75) 100%);pointer-events:none}
 
 /* cards */
-.card{width:440px;height:480px;border-radius:36px;padding:36px}
+.card{border-radius:36px;padding:36px}
 .card .n{font-weight:500;font-size:20px;letter-spacing:.3em;color:var(--ice)}
-.card h3{position:absolute;left:36px;bottom:76px;font-weight:600;font-size:46px;letter-spacing:-.03em;color:#fff}
-.card p{position:absolute;left:36px;bottom:36px;font-weight:300;font-size:21px;letter-spacing:.01em;color:#A9B8D0}
-.card svg{position:absolute;left:50%;top:50%;width:230px;height:230px;margin:-150px 0 0 -115px;overflow:visible}
+.card h3{position:absolute;left:36px;bottom:104px;font-weight:600;font-size:38px;letter-spacing:-.03em;color:#fff}
+.card p{position:absolute;left:36px;bottom:36px;width:370px;line-height:1.35;font-weight:300;font-size:22px;letter-spacing:.01em;color:#A9B8D0}
+.card svg{position:absolute;left:50%;top:36%;width:150px;height:150px;margin:-100px 0 0 -75px;overflow:visible}
+.card.big h3{font-size:68px;bottom:96px;letter-spacing:-.035em}
+.card.big p{font-size:28px;width:520px}
+.card.big svg{left:auto;right:90px;top:50%;width:330px;height:330px;margin:-190px 0 0 0}
+.card.big .n,.card.big h3,.card.big p{left:48px}
 .card svg *{fill:none;stroke:url(#sg);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
 .card .arr{position:absolute;right:36px;top:30px;font-size:30px;color:var(--ice);font-weight:300}
 </style>
@@ -77,10 +81,10 @@ canvas#bg{position:absolute;inset:0}
   <div class="abs glass" id="shardA" style="left:600px;top:760px;width:430px;height:620px;border-radius:40px"><div class="spec" id="specA"></div></div>
   <div class="abs glass" id="shardB" style="left:44px;top:1330px;width:300px;height:300px;border-radius:32px"><div class="spec" id="specB"></div></div>
   <div class="abs tag" id="lab2" style="left:96px;top:420px">01 — Manifesto</div>
-  <div class="abs" id="head" style="left:96px;top:500px"></div>
+  <div class="abs" id="head" style="left:96px;top:540px"></div>
 
   <!-- S3 -->
-  <div class="abs tag" id="lab3" style="left:96px;top:390px">02 — Serviços</div>
+  <div class="abs tag" id="lab3" style="left:96px;top:390px">02 — Nossas frentes</div>
   <div class="abs serif" id="tit3" style="left:96px;top:430px;font-size:96px;padding-right:20px">O que construímos.</div>
   <div id="cards"></div>
 
@@ -159,17 +163,15 @@ $('stage').appendChild(ao);
 
 // cards
 const cardsData=[
-  {n:'01',t:'Branding',p:'Identidade e posicionamento',x:80,y:590,
-   svg:'<circle cx="60" cy="100" r="62" pathLength="1"/><circle cx="110" cy="100" r="62" pathLength="1"/><circle cx="160" cy="100" r="62" pathLength="1"/>'},
-  {n:'02',t:'Design',p:'Sistemas visuais e editorial',x:560,y:590,
-   svg:'<rect x="20" y="20" width="160" height="160" pathLength="1"/><path d="M20 100H180M100 20V180" pathLength="1"/><path d="M20 180L180 20" pathLength="1"/><circle cx="100" cy="100" r="34" pathLength="1"/>'},
-  {n:'03',t:'Conteúdo',p:'Narrativa para redes e marca',x:80,y:1110,
+  {n:'01',t:'Criação de Marca',p:'Estratégia e identidade visual',x:80,y:580,w:920,h:500,big:1,
+   svg:'<circle cx="60" cy="100" r="62" pathLength="1"/><circle cx="110" cy="100" r="62" pathLength="1"/><circle cx="160" cy="100" r="62" pathLength="1"/><circle cx="110" cy="100" r="22" pathLength="1"/>'},
+  {n:'02',t:'Núcleo de Conteúdo',p:'Artes e vídeos para redes sociais',x:80,y:1120,w:440,h:440,
    svg:'<rect x="40" y="10" width="120" height="170" rx="18" pathLength="1"/><rect x="26" y="26" width="120" height="170" rx="18" pathLength="1"/><rect x="12" y="42" width="120" height="170" rx="18" pathLength="1"/>'},
-  {n:'04',t:'Audiovisual',p:'Motion, vídeo e direção',x:560,y:1110,
+  {n:'03',t:'Cobertura de Eventos',p:'After movie, stories e fotos em tempo real',x:560,y:1120,w:440,h:440,
    svg:'<circle cx="100" cy="100" r="86" pathLength="1"/><path d="M82 66L140 100L82 134Z" pathLength="1"/><path d="M-20 100H0M200 100H220" pathLength="1"/>'},
 ];
 const cardEls=cardsData.map(c=>{
-  const d=document.createElement('div');d.className='abs glass card';d.style.left=c.x+'px';d.style.top=c.y+'px';
+  const d=document.createElement('div');d.className='abs glass card';d.style.cssText+=`left:${c.x}px;top:${c.y}px;width:${c.w}px;height:${c.h}px`;if(c.big)d.classList.add('big');
   d.innerHTML=`<div class="spec"></div><div class="n">${c.n}</div><div class="arr">↗</div>
     <svg viewBox="0 0 200 200">${c.svg}</svg><h3>${c.t}</h3><p>${c.p}</p>`;
   $('cards').appendChild(d);
