@@ -53,119 +53,184 @@ def pad(notes,d,gain=.5):
     lfo=.85+.15*np.sin(2*np.pi*.13*x)
     return out*e*lfo*gain/ (len(notes)*3)
 
-# =====================  TRILHA  =====================
+# =====================  MÚSICA (120 bpm, Lá menor) + SFX  =====================
+class Layer:
+    def __init__(s): s.L=np.zeros(N); s.R=np.zeros(N); s.RL=np.zeros(N); s.RR=np.zeros(N)
+    def add(s,sig,at,pan=0.0,gain=1.0,rev=0.0):
+        i=int(at*SR)
+        if i>=N: return
+        if i<0: sig=sig[-i:]; i=0
+        x=sig[:N-i]*gain; l=np.sqrt((1-pan)/2); r=np.sqrt((1+pan)/2); n=len(x)
+        s.L[i:i+n]+=x*l; s.R[i:i+n]+=x*r; s.RL[i:i+n]+=x*l*rev; s.RR[i:i+n]+=x*r*rev
+    def to_music(s,env=None,g=1.0):
+        e=1.0 if env is None else env
+        ML[:]+=s.L*e*g; MR[:]+=s.R*e*g; MRL[:]+=s.RL*e*g; MRR[:]+=s.RR*e*g
+    def to_fx(s,g=1.0):
+        L[:]+=s.L*g; R[:]+=s.R*g; RL[:]+=s.RL*g; RR[:]+=s.RR*g
+
+beat=60/tl['bpm']; bar=4*beat
+T1=tl['t1'][0]; T2=tl['t2'][0]; T3=tl['t3'][0]; T4=tl['t4'][0]; G=tl['glyph']; END=T
+def beats(a,b,step=1.0,off=0.0):
+    out=[]; x=a+off*beat
+    while x<b-1e-6: out.append(x); x+=step*beat
+    return out
+
+CH={'Am':([57,60,64],33),'F':([53,57,60],29),'C':([55,60,64],36),'G':([55,59,62],31)}
+def chord_at(t):
+    if t<T1: return 'Am'
+    if t<T4: return ['Am','F','C','G'][int((t-T1)//bar)%4]
+    if t<T4+beat*2: return 'Am'
+    if t<T4+beat*4: return 'F'
+    if t<G: return 'G'
+    return 'Am'
+
+# --- sidechain: tudo que é "colchão" abaixa a cada bumbo
+kick_ranges=[(T1,T4)]
+ph=(t_%beat); sc=np.ones(N)
+for a_,b_ in kick_ranges:
+    m=(t_>=a_)&(t_<b_); sc[m]=1-.78*np.exp(-ph[m]/.15)
+
+# --- sons base
+def kick(d=.42):
+    h=tt(d); f=45+120*np.exp(-h*38)
+    body=np.sin(2*np.pi*np.cumsum(f)/SR)*np.exp(-h*9)
+    clk=np.sin(2*np.pi*2200*h)*np.exp(-h*420)*.25
+    return body+clk
+def clap(d=.22):
+    out=np.zeros(int(SR*d))
+    for off,g in ((0,.7),(.011,.8),(.024,1.0)):
+        n=rng.standard_normal(int(SR*.1)); n=n-onepole_sweep(n,900,900); n=onepole_sweep(n,5200,5200)
+        i=int(off*SR); k=min(len(n),len(out)-i); out[i:i+k]+=(n*np.exp(-np.arange(len(n))/SR*45))[:k]*g
+    return out
+def hat(d=.05,hp=6500,dec=90):
+    n=rng.standard_normal(int(SR*d)); n=n-onepole_sweep(n,hp,hp); return n*np.exp(-tt(d)*dec)
+def saw_pluck(f,d=.45,dec=7.0,det=.004,bright=.9):
+    x=tt(d); out=np.zeros(len(x))
+    for dt in (-det,0,det):
+        ph0=rng.uniform(0,6.28)
+        for h in range(1,13):
+            if f*h>9000: break
+            out+=np.sin(2*np.pi*f*(1+dt)*h*x+ph0*h)/h*np.exp(-x*(dec+h*bright))
+    return out*np.minimum(x/.003,1)/3
+def bass_note(f,d=.2):
+    x=tt(d); e=np.minimum(x/.004,1)*np.exp(-x*5)*np.clip((d-x)/.03,0,1)
+    return (np.sin(2*np.pi*f*x)+.45*np.sin(2*np.pi*2*f*x)+.2*np.sin(2*np.pi*3*f*x))*e
+def riser(d,lo=300,hi=9000,g=1.0):
+    n=int(SR*d); x=rng.standard_normal(n); y=onepole_sweep(x,lo,hi); y=y-onepole_sweep(y,200,200)
+    e=np.linspace(0,1,n)**2.2; return y*e*g*3
+def downlifter(d,hi=7000,lo=200,g=1.0):
+    n=int(SR*d); x=rng.standard_normal(n); y=onepole_sweep(x,hi,lo); y=y-onepole_sweep(y,200,200)
+    e=np.exp(-np.linspace(0,1,n)*3.0); return y*e*g*3
+def tone_riser(d,f0,f1):
+    n=int(SR*d); f=np.linspace(f0,f1,n)**1.0; ph=np.cumsum(f)/SR*2*np.pi
+    return np.sin(ph)*np.linspace(0,1,n)**2
+def sub(d=1.8,f0=70,f1=38,k=5):
+    h=tt(d); return np.sin(2*np.pi*np.cumsum(f1+(f0-f1)*np.exp(-h*k))/SR)*np.exp(-h*1.6)
 def bell(f,d=1.4):
     x=tt(d); m=np.sin(2*np.pi*f*2.01*x)*np.exp(-x*6)*1.2
     return np.sin(2*np.pi*f*x+m)*np.exp(-x*3.2)*np.minimum(x/.004,1)
-bd=[0,tl['t1'][1],tl['t2'][1],tl['t3'][1],tl['t4'][1],T]
-# Am9 | Fmaj7 | Cmaj9 | Em7 | Dm9 | Am(add9)
-chords=[(bd[0],bd[1],[57,60,64,67,71],33,.55),(bd[1],bd[2],[53,57,60,64,67],29,.8),(bd[2],bd[3]-.0,[55,60,64,67,71],36,.85),
-        (bd[3],bd[4],[52,55,59,64,67],28,.8),(bd[4],T,[57,60,64,69,72],33,.8)]
-# S3 é longa: divide em duas harmonias
-chords=[(bd[0],bd[1],[57,60,64,67,71],33,.55),(bd[1],bd[2],[53,57,60,64,67],29,.8),
-        (bd[2],bd[2]+4.2,[55,60,64,67,71],36,.85),(bd[2]+4.2,bd[3]+.6,[52,55,59,64,67],28,.8),
-        (bd[3]+.6,bd[4],[50,53,57,60,64],26,.75),(bd[4],T,[57,60,64,69,72],33,.8)]
-for a,b,ns,root,g in chords:
-    d=b-a+1.4
-    add(pad(ns,d,.9*g),a-.3,0,1,.5,music=True)
-    add(sine(midi(root),d,a=.6,r=d-.6,curve=1.2)*.5*g,a-.2,0,1,.05,music=True)
 
-beat=60/100
-# pulso grave + "hat" suave: entra com o manifesto, sai antes do fechamento
-tk=tl['t1'][1]+.1; pe=tl['t4'][0]
-while tk<pe:
-    k=tt(.35); f=48+60*np.exp(-k*40)
-    add(np.sin(2*np.pi*np.cumsum(f)/SR)*np.exp(-k*11),tk,0,.30,.05,music=True); tk+=beat
-tk=tl['t1'][1]+.1+beat/2
-while tk<pe:
-    n=rng.standard_normal(int(SR*.05)); n=n-onepole_sweep(n,3000,3000)
-    add(n*np.exp(-tt(.05)*70),tk,rng.uniform(-.3,.3),.10,.1,music=True); tk+=beat
-# arpejo de sinos com eco (S2 em diante; some no fechamento)
-scales=[[69,72,76,79,81,76,72,79],[65,69,72,76,77,72,69,76],[67,71,74,79,83,79,74,71],[64,67,71,76,79,76,71,67],[62,65,69,72,76,72,69,65]]
-step=beat/2; k=0; tk=tl['lines'][0]-.1
-def which(t):
-    for i,(a,b,*_ ) in enumerate(chords):
-        if a<=t<b: return min(i-1,4) if i>0 else 0
-    return 4
-while tk<tl['t4'][0]+.2:
-    sc=scales[max(0,min(which(tk),4))]
-    f=midi(sc[k%8]); vol=.12; p=-.5+((k%2)*1.0)
-    add(bell(f),tk,p,vol,.45,music=True); add(bell(f),tk+step*1.5,-p,vol*.45,.45,music=True)
-    k+=1; tk+=step
-# final: pad abre; arpejo de 4 notas assina o logotipo
-duck=np.ones(N)
-def duck_to(a,b,c,d,lvl):   # desce em a→b, segura, volta em c→d
-    global duck
-    x=t_; env_=np.clip((x-a)/(b-a),0,1)*(1-np.clip((x-c)/(d-c),0,1)); duck*=1-(1-lvl)*env_
-duck_to(tl['line'][0]-.5,tl['line'][0]+.2,tl['glyph']+.4,tl['glyph']+1.6,.30)        # respiro antes do logo
-duck_to(tl['t4'][0]+.3,tl['t4'][1]+.2,tl['sj'][1]+.2,tl['sj'][1]+1.4,.55)             # abre espaço no colapso da galeria
-duck_to(.0,.3,tl['keys'][-1]+.3,tl['keys'][-1]+1.0,.45)                                # abertura mais seca, digitação em primeiro plano
+# --- baterias
+dr=Layer()
+for t0 in beats(T1,T4): dr.add(kick(),t0,0,1.0,.02)
+for t0 in beats(T1,T4,2.0,1.0): dr.add(clap(),t0,0,.50,.28)                     # tempos 2 e 4
+for t0 in beats(T1,T4,1.0,.5): dr.add(hat(.11,6000,38),t0,.2,.16,.1)              # contratempo (aberto)
+for t0 in beats(T1,T4,.5,.25): dr.add(hat(.04,8000,140),t0,-.2,.05,.05)           # semicolcheias fantasma
+for t0 in beats(T3,T4,.25,.0): dr.add(hat(.03,9000,200),t0,rng.uniform(-.5,.5),.04,.05)   # galeria: shaker 16ths
+# build-up (2.0→4.0): hats crescendo + rufar de caixa na última batida
+for t0 in beats(2.0,T1,.5,.0): dr.add(hat(.04,8000,150),t0,0,.04+.08*(t0-2.0)/2.0,.1)
+for k,t0 in enumerate(beats(T1-beat,T1,.25,.0)): dr.add(clap(.16),t0,0,.12+.06*k,.2)
+# viradas curtas antes de T2 / T3 / T4
+for k,t0 in enumerate(beats(T2-beat,T2,.25,.0)): dr.add(clap(.16),t0,0,.10+.04*k,.2)
+for k,t0 in enumerate(beats(T3-beat,T3,.25,.0)): dr.add(clap(.16),t0,0,.12+.05*k,.2)
+for k,t0 in enumerate(beats(T4-beat*2,T4,.25,.0)): dr.add(clap(.16),t0,0,.10+.025*k,.2)
+# coração no breakdown
+for k,t0 in enumerate(beats(T4+beat*2,G,2.0,.0)): dr.add(sub(.5,60,40,12),t0,0,.28+.05*k,.1)
+dr.to_music(None,1.35)
 
-# =====================  EFEITOS  =====================
+# --- baixo (contratempos), acordes em stabs, pad e arpejo — tudo com sidechain
+bs=Layer(); st=Layer(); pd=Layer(); ar=Layer()
+for t0 in beats(T1,T4,1.0,.5):
+    root=CH[chord_at(t0)][1]+(12 if int((t0-T1)/beat)%4==2 else 0)
+    bs.add(bass_note(midi(root),.22),t0,0,1.0,.02)
+bars_t=beats(T1,T4,4.0,.0)
+for bt in bars_t:
+    for pos in (0.75,1.5,2.75,3.5):
+        t0=bt+pos*beat
+        if t0>=T4: continue
+        ch=CH[chord_at(t0)][0]; g=.11 if t0<T3 else .17
+        for n in ch: st.add(saw_pluck(midi(n+12),.5,6.5),t0,rng.uniform(-.4,.4),g/1.6,.25)
+# pad contínuo (todo o vídeo, troca de acorde por compasso)
+segs=[(0,T1)]
+t_c=T1
+while t_c<T4: segs.append((t_c,min(t_c+bar,T4))); t_c+=bar
+segs+= [(T4,T4+beat*2),(T4+beat*2,T4+beat*4),(T4+beat*4,G),(G,END)]
+for a_,b_ in segs:
+    ch=CH[chord_at(a_+.01)][0]; g=.16 if a_<T1 else (.30 if a_<T4 else (.40 if a_<G else .5))
+    pd.add(pad([n for n in ch]+[ch[0]+12],b_-a_+1.2,g),a_-.3,0,1,.5)
+    root=CH[chord_at(a_+.01)][1]
+    if a_<T1 or a_>=T4: pd.add(sine(midi(root),b_-a_+.8,a=.5,r=b_-a_+.3,curve=1.1)*(.2 if a_<T1 else .35),a_-.2,0,1,.05)
+# arpejo (S3 em diante) com eco "3/16"
+for k,t0 in enumerate(beats(T2,T4,.25,.0)):
+    ch=CH[chord_at(t0)][0]; notes=ch+[ch[0]+12,ch[1]+12,ch[2]+12,ch[1]+12]
+    f=midi(notes[k%len(notes)]+12); p=-.5+(k%2)
+    g=.06 if t0<T3 else .09
+    sig=saw_pluck(f,.28,9.0,.003,1.2)
+    ar.add(sig,t0,p,g,.35); ar.add(sig,t0+.75*beat*.5,-p,g*.4,.35)
+# fecho: pluck suave sobre Lá menor
+for k,t0 in enumerate(beats(G+beat,END-1.0,.5,.0)):
+    ch=CH['Am'][0]; f=midi(([ch[0],ch[1],ch[2],ch[1]][k%4])+24)
+    ar.add(bell(f,1.2),t0,-.4+(k%2)*.8,.05,.6)
+bs.to_music(sc,1.0); st.to_music(sc,1.0); pd.to_music(sc,1.0); ar.to_music(sc,1.0)
+
+# =====================  TRANSIÇÕES / IMPACTOS (musicais, sem "whoosh" genérico)  =====================
+fx=Layer()
+fx.add(riser(1.7,300,9000,1),T1-1.7,0,.16,.35)
+fx.add(sub(1.4,66,38,6),T1,0,.55,.1)                     # drop
+fx.add(downlifter(.9,6000,300,1),T1,0,.10,.3)
+fx.add(riser(.6,500,6500,1),T2-.6,0,.10,.3)
+fx.add(riser(1.0,300,8000,1),T3-1.0,0,.14,.3)
+fx.add(sub(1.0,64,40,7),T3,0,.38,.1)
+fx.add(downlifter(1.1,8000,250,1),T4,0,.12,.35)
+fx.add(riser(G-(T4+.6),200,10000,1),T4+.6,0,.17,.4)       # sobe até a assinatura
+fx.add(tone_riser(G-(T4+.6),160,1400),T4+.6,0,.05,.4)
+fx.add(sub(2.6,70,34,4),G,0,.85,.25)                      # assinatura do logo (sub + sinos)
+for j,n in enumerate((81,88,93,100)): fx.add(bell(midi(n),3.2),G+.02+j*.07,-.5+.33*j,.14,.9)
+fx.to_fx(1.0)
+
+# =====================  CLIQUE DE CÂMERA + DIGITAÇÃO  =====================
+def burst(ms,lo,hi,dec):
+    n=rng.standard_normal(int(SR*ms/1000)); n=n-onepole_sweep(n,lo,lo); n=onepole_sweep(n,hi,hi)
+    return n*np.exp(-np.arange(len(n))/SR*dec)
+def shutter(p=1.0):
+    x=np.zeros(int(SR*.16)); a=burst(14,2400*p,7500,300); b=burst(24,1000*p,4200,170)
+    th=sine(165*p,.04,a=.001,curve=3)
+    x[:len(a)]+=a*1.0; i2=int(SR*.034); x[i2:i2+len(b)]+=b*.85; x[i2:i2+len(th)]+=th*.5
+    return x
 def click(f=2600,d=.03,gain=1.0):
     n=rng.standard_normal(int(SR*d)); n=n-onepole_sweep(n,1800,1800); e=np.exp(-tt(d)*150)
     return (n*e*.7+np.sin(2*np.pi*f*tt(d))*e*.55)*gain
 def thock(f=190,d=.07): return np.sin(2*np.pi*f*tt(d))*np.exp(-tt(d)*52)
-def tink(f=1760,d=.8): return (sine(f,d,a=.001,curve=4)*.6+sine(f*1.5,d,a=.001,curve=5)*.3+sine(f*2.0,d,a=.001,curve=6)*.15)
-def swell(d,lo,hi,gain=1.0):  # textura eletrônica: ruído filtrado em varredura
-    n=int(SR*d); x=rng.standard_normal(n); y=onepole_sweep(x,lo,hi); y=y-onepole_sweep(y,120,120)
-    e=np.sin(np.pi*np.linspace(0,1,n))**2; return y*e*gain*3
-def sub(d=1.8,f0=70,f1=38,k=5): 
-    h=tt(d); return np.sin(2*np.pi*np.cumsum(f1+(f0-f1)*np.exp(-h*k))/SR)*np.exp(-h*2.0)
-
-# --- S1: digitação (cada tecla com variação de timbre; "Dusk" um pouco mais grave e cheia)
+ty=Layer()
 for i,t0 in enumerate(tl['keys']):
-    big=i>=8
-    f=rng.uniform(2300,3300) if not big else rng.uniform(1700,2300)
-    add(click(f,.03,1.0),t0,rng.uniform(-.35,.35),.10 if not big else .13,.12)
-    add(thock(rng.uniform(150,210) if not big else rng.uniform(110,150),.08),t0,0,.09 if not big else .13,.05)
-add(swell(.6,1200,5200,1),tl['rule1'][0],0,.10,.3)                         # régua nasce
-# --- T1: régua → máscara branca
-add(swell(.9,200,2600,1),tl['t1'][0]+.05,0,.12,.3)
-add(sub(.9,62,44,9),tl['t1'][0]+.35,0,.14,.1)
-# --- S2: uma batida por linha, timbres alternados (seco / médio / grave)
-kinds=[('tick',3000),('tap',1400),('tick',2500),('tap',900),('tick',2800),('tap',700)]
-for i,t0 in enumerate(tl['lines']):
-    kind,f=kinds[i]
-    if kind=='tick': add(click(f,.035,1.0),t0+.12,rng.uniform(-.4,.4),.11,.2)
-    else: add(click(f,.05,.8),t0+.12,rng.uniform(-.4,.4),.10,.2); add(thock(f/6,.12),t0+.12,0,.12,.1)
-add(click(3600,.02,1.0),tl['que']+.12,.3,.07,.2)
-add(swell(.8,900,4200,1),tl['rule2'][0],0,.07,.3)
-# --- T2: corte seco sincronizado + sopro curto
-add(swell(.7,300,5000,1),tl['t2'][0]+.05,0,.10,.25)
-add(click(1200,.05,1.2),tl['t2'][0]+.32,0,.16,.1); add(thock(95,.14),tl['t2'][0]+.32,0,.20,.05)
-# --- S3: título, cards (vidro), palavras-chave, traço dos ícones
-add(click(2800,.03,1.0),tl['title']+.15,0,.08,.2)
-kw=[2,4,6]
-for i,s0 in enumerate(tl['cards']):
-    pan=[-.2,-.5,.5][i]
-    add(tink(1760+i*220,.9),s0+.2,pan,.06,.7); add(sine(midi(45+i*2),.7,a=.02,curve=2),s0+.15,0,.10,.2)
-    add(swell(1.0,500,3500,1),s0+.3,pan,.05,.4)                              # linhas se desenhando
-    add(click(2400,.03,1.0),s0+.45,pan,.07,.2)                               # título do card
-    add(tink(2637,.7),s0+.85+kw[i]*.1,pan,.05,.8)                            # palavra-chave
-# --- T3: câmera avança (sopro limpo, sem impacto)
-add(swell(1.1,250,4800,1),tl['t3'][0]+.05,0,.11,.35)
-# --- S4: cada fileira entra com um toque leve
-for j,t0 in enumerate(tl['rows']):
-    add(swell(.8,400,3800,1),t0,-.4+.4*j,.06,.4); add(click(1900,.04,1.0),t0+.55,-.4+.4*j,.07,.3)
-# --- T4: fileiras caem na linha (varredura descendente) → ping fino
-add(swell(.9,5200,300,1),tl['t4'][0]+.05,0,.09,.3)
-add(click(2200,.03,1.2),tl['t4'][0]+.78,0,.09,.2)
-add(tink(2637,1.4),tl['ruleIn'][0],0,.05,.9)
-# --- S5: "Seja" / "bem-vindo" / "ao"
-for i,t0 in enumerate(tl['sj']): add(click(2200-i*300,.04,1.0),t0+.12,0,.09,.3); add(thock(130,.1),t0+.12,0,.09,.1)
-add(click(3200,.025,1.0),tl['ao']+.1,0,.06,.2)
-# silêncio relativo (música abaixa) → linha desce até a base do logo
-add(swell(.7,6000,500,1),tl['line'][0],0,.07,.3)
-# --- ASSINATURA: letras sobem da linha (4 toques ascendentes), sub-grave suave, trava da moldura, acorde de sinos
-for i in range(4):
-    t0=tl['glyph']+i*.09+.12
-    add(click(2200+i*420,.04,1.0),t0,-.4+.27*i,.12,.4); add(thock(160-i*10,.09),t0,0,.12,.1)
-add(sub(2.2,64,36,5),tl['glyph']+.05,0,.34,.25)
-add(click(1500,.05,1.0),tl['lock'][0]+.45,0,.10,.1)                           # moldura trava
-for j,n in enumerate((81,88,93)): add(bell(midi(n),3.2),tl['lock'][0]+.1+j*.11,-.4+.4*j,.13,.9)
-add(tink(2093,1.6),tl['lock'][1]-.05,0,.07,.9)
-add(click(2400,.03,1.0),tl['pill']+.15,0,.06,.2); add(tink(2637,.9),tl['pill']+.2,0,.04,.8)
+    big=i>=13
+    f=rng.uniform(2300,3300) if not big else rng.uniform(1800,2400)
+    ty.add(click(f,.03,1.0),t0,rng.uniform(-.35,.35),.26 if not big else .30,.15)
+    ty.add(thock(rng.uniform(150,210) if not big else rng.uniform(110,150),.08),t0,0,.20 if not big else .26,.05)
+for t0 in tl['sp']:                                        # barra de espaço: mais grave e "cheia"
+    ty.add(thock(100,.11),t0,0,.26,.05); ty.add(click(1600,.04,1.0),t0,0,.10,.1)
+ty.to_fx(.62)
+cam=Layer()
+cl=[(t0,1.0+.06*((i%3)-1)) for i,t0 in enumerate(tl['lines'])]
+cl+=[(tl['title']+.12,1.1)]
+for i,s0 in enumerate(tl['cards']): cl+=[(s0+.4,.95+.05*i),(s0+.68,1.15)]
+cl+=[(tl['sj'][0]+.12,1.0),(tl['sj'][1]+.12,.95),(tl['ao']+.1,1.2)]
+for t0,p in cl: cam.add(shutter(p),t0,rng.uniform(-.25,.25),.17,.12)
+cam.to_fx(1.0)
+mi=Layer()
+mi.add(click(1500,.05,1.0),tl['lock'][0]+.45,0,.12,.1)    # moldura trava
+mi.add(click(2400,.03,1.0),tl['pill']+.15,0,.08,.2)
+mi.to_fx(1.0)
 
 # ---- reverb sintético (cauda ~2.4s) ----
 irn=int(SR*2.6); x=np.arange(irn)/SR
@@ -174,7 +239,7 @@ def ir():
     n=n-onepole_sweep(n,150,150); n=onepole_sweep(n,6500,2500); return n*np.minimum(x/.02,1)
 def conv(a,b):
     m=1<<int(np.ceil(np.log2(len(a)+len(b)))); return np.fft.irfft(np.fft.rfft(a,m)*np.fft.rfft(b,m),m)[:len(a)]
-MG=.85
+duck=np.ones(N); MG=1.25
 wl=conv(RL+MRL*duck*MG,ir()); wr=conv(RR+MRR*duck*MG,ir())
 
 
