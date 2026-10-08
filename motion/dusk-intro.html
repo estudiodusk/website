@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>DUSK — Intro 9:16</title>
+<style>
+@font-face{font-family:'Manrope';font-weight:300;src:url(fonts/manrope-latin-300-normal.woff2)}
+@font-face{font-family:'Manrope';font-weight:500;src:url(fonts/manrope-latin-500-normal.woff2)}
+@font-face{font-family:'Manrope';font-weight:700;src:url(fonts/manrope-latin-700-normal.woff2)}
+@font-face{font-family:'Manrope';font-weight:800;src:url(fonts/manrope-latin-800-normal.woff2)}
+@font-face{font-family:'Instrument Serif';font-style:normal;src:url(fonts/instrument-serif-latin-400-normal.woff2)}
+@font-face{font-family:'Instrument Serif';font-style:italic;src:url(fonts/instrument-serif-latin-400-italic.woff2)}
+
+:root{
+  --bg:#030912; --blue:#2451B5; --ice:#93C5FD; --glow:#BFDBFE; --frost:#EFF6FF; --muted:#7C8DA8;
+  --sans:'Manrope','Inter',sans-serif; --serif:'Instrument Serif',serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1080px;height:1920px;background:var(--bg);overflow:hidden}
+#stage{position:relative;width:1080px;height:1920px;overflow:hidden;perspective:1800px;color:#fff;font-family:var(--sans)}
+canvas#bg{position:absolute;inset:0}
+.abs{position:absolute;left:0;top:0;will-change:transform,opacity}
+
+/* glass */
+.glass{
+  background:linear-gradient(140deg,rgba(255,255,255,.16) 0%,rgba(255,255,255,.04) 45%,rgba(147,197,253,.08) 100%);
+  backdrop-filter:blur(30px) saturate(150%);-webkit-backdrop-filter:blur(30px) saturate(150%);
+  border:1px solid rgba(255,255,255,.14);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.4),inset 0 -1px 0 rgba(147,197,253,.15),0 50px 140px rgba(0,8,32,.65),0 0 80px rgba(36,81,181,.18);
+  overflow:hidden;
+}
+.glass .spec{position:absolute;inset:-20%;pointer-events:none;mix-blend-mode:screen}
+
+/* type */
+.sans{font-family:var(--sans);font-weight:500;font-size:96px;letter-spacing:-.03em;line-height:1}
+.serif{font-family:var(--serif);font-style:italic;font-weight:400;font-size:122px;letter-spacing:-.01em;line-height:1;
+  background:linear-gradient(100deg,#7DB3F7 0%,#EFF6FF 40%,#93C5FD 60%,#5B8DEF 100%);background-size:260% 100%;
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.line{height:136px;display:flex;align-items:baseline;gap:30px;white-space:nowrap}
+.w{display:inline-block;will-change:transform,opacity,filter}
+.tag{font-family:var(--sans);font-weight:500;font-size:22px;letter-spacing:.42em;text-transform:uppercase;color:var(--ice);white-space:nowrap}
+
+/* hud */
+.hud{font-family:var(--sans);font-weight:500;font-size:20px;letter-spacing:.3em;text-transform:uppercase;color:rgba(191,219,254,.7)}
+#bar{position:absolute;left:96px;bottom:150px;width:888px;height:1px;background:rgba(255,255,255,.12)}
+#bar i{position:absolute;left:0;top:-1px;height:3px;width:0;background:linear-gradient(90deg,transparent,var(--ice));box-shadow:0 0 14px var(--ice)}
+
+#grain{position:absolute;inset:-100px;mix-blend-mode:overlay;opacity:.16;pointer-events:none}
+#vig{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 48%,transparent 40%,rgba(1,4,10,.75) 100%);pointer-events:none}
+
+/* cards */
+.card{width:440px;height:480px;border-radius:36px;padding:36px}
+.card .n{font-weight:500;font-size:20px;letter-spacing:.3em;color:var(--ice)}
+.card h3{position:absolute;left:36px;bottom:76px;font-weight:600;font-size:46px;letter-spacing:-.03em;color:#fff}
+.card p{position:absolute;left:36px;bottom:36px;font-weight:300;font-size:21px;letter-spacing:.01em;color:#A9B8D0}
+.card svg{position:absolute;left:50%;top:50%;width:230px;height:230px;margin:-150px 0 0 -115px;overflow:visible}
+.card svg *{fill:none;stroke:url(#sg);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.card .arr{position:absolute;right:36px;top:30px;font-size:30px;color:var(--ice);font-weight:300}
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="bg" width="1080" height="1920"></canvas>
+
+  <!-- HUD -->
+  <div class="abs hud" id="hudL" style="left:96px;top:150px">DUSK®</div>
+  <div class="abs hud" id="hudR" style="left:0;top:150px;width:984px;text-align:right">01 / 04</div>
+  <div id="bar"><i id="barfill"></i></div>
+
+  <!-- S1 -->
+  <div class="abs glass" id="slab" style="left:130px;top:740px;width:820px;height:440px;border-radius:48px"><div class="spec" id="slabSpec"></div></div>
+  <div class="abs" id="duskWord" style="left:130px;top:740px;width:820px;height:440px;display:flex;align-items:center;justify-content:center;
+       font-weight:800;font-size:196px;letter-spacing:.16em;padding-left:.16em;line-height:1"></div>
+  <div class="abs tag" id="sub1" style="left:0;top:1270px;width:1080px;text-align:center;padding-left:.42em">Estúdio Criativo</div>
+
+  <!-- S2 -->
+  <div class="abs glass" id="shardA" style="left:600px;top:760px;width:430px;height:620px;border-radius:40px"><div class="spec" id="specA"></div></div>
+  <div class="abs glass" id="shardB" style="left:44px;top:1330px;width:300px;height:300px;border-radius:32px"><div class="spec" id="specB"></div></div>
+  <div class="abs tag" id="lab2" style="left:96px;top:420px">01 — Manifesto</div>
+  <div class="abs" id="head" style="left:96px;top:500px"></div>
+
+  <!-- S3 -->
+  <div class="abs tag" id="lab3" style="left:96px;top:390px">02 — Serviços</div>
+  <div class="abs serif" id="tit3" style="left:96px;top:430px;font-size:96px;padding-right:20px">O que construímos.</div>
+  <div id="cards"></div>
+
+  <!-- S4 -->
+  <div class="abs glass" id="orbGlass" style="left:290px;top:520px;width:500px;height:500px;border-radius:50%"><div class="spec" id="specO"></div></div>
+  <div class="abs" id="welcome" style="left:0;top:560px;width:1080px;text-align:center"></div>
+  <div class="abs" id="finalWord" style="left:0;top:1090px;width:1080px;text-align:center;font-weight:800;font-size:132px;letter-spacing:.2em;padding-left:.2em;line-height:1"></div>
+  <div class="abs glass" id="pill" style="left:150px;top:1330px;width:780px;height:92px;border-radius:46px;display:flex;align-items:center;justify-content:center">
+    <span class="tag" style="font-size:19px;letter-spacing:.34em;color:#DCEBFF">Branding · Design · Estratégia</span>
+  </div>
+
+  <div id="vig"></div>
+  <div id="grain"></div>
+  <svg width="0" height="0" style="position:absolute"><defs>
+    <linearGradient id="sg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#EFF6FF"/><stop offset="1" stop-color="#4F86F0"/></linearGradient>
+  </defs></svg>
+</div>
+
+<script>
+const W=1080,H=1920,T=15.6;
+const clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
+const seg=(t,a,b)=>clamp((t-a)/(b-a));
+const oQ=x=>1-Math.pow(1-x,4), oC=x=>1-Math.pow(1-x,3);
+const ioC=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+const lerp=(a,b,k)=>a+(b-a)*k;
+const $=id=>document.getElementById(id);
+
+function tf(el,{x=0,y=0,s=1,r=0,rx=0,ry=0,o=1,b=0}={}){
+  el.style.transform=`translate3d(${x}px,${y}px,0) rotateX(${rx}deg) rotateY(${ry}deg) rotate(${r}deg) scale(${s})`;
+  el.style.opacity=o;
+  el.style.filter=b>.05?`blur(${b}px)`:'none';
+  el.style.visibility=o<=.003?'hidden':'visible';
+}
+// reveal 0..1 in, 0..1 out
+const wordIn=(t,a,d=1.0)=>oQ(seg(t,a,a+d));
+
+/* ---------- build DOM ---------- */
+function letters(host,str){
+  host.innerHTML='';
+  return [...str].map(c=>{const s=document.createElement('span');s.className='w';s.textContent=c;host.appendChild(s);return s});
+}
+const duskL=letters($('duskWord'),'DUSK');
+const finalL=letters($('finalWord'),'DUSK');
+
+// headline
+const lines=[
+  [['Construímos','sans']],
+  [['marcas','serif'],['que','sans']],
+  [['conquistam','sans']],
+  [['o mercado','serif']],
+  [['e o coração','sans']],
+  [['das pessoas.','serif']],
+];
+const headWords=[];const serifEls=[];
+lines.forEach(l=>{
+  const d=document.createElement('div');d.className='line';
+  l.forEach(([txt,k])=>{
+    const sp=document.createElement('span');sp.className='w '+k;sp.textContent=txt;
+    if(k==='serif')serifEls.push(sp);
+    d.appendChild(sp);headWords.push(sp);
+  });
+  $('head').appendChild(d);
+});
+
+// welcome
+const wl=[['Seja','serif'],['bem-vindo','serif']];
+const welcomeW=[];
+wl.forEach(([t])=>{
+  const d=document.createElement('div');d.style.height='168px';
+  const sp=document.createElement('span');sp.className='w serif';sp.style.fontSize='176px';sp.textContent=t;
+  d.appendChild(sp);$('welcome').appendChild(d);welcomeW.push(sp);
+});
+// "ao" tiny label above DUSK
+const ao=document.createElement('div');ao.className='abs tag';ao.style.cssText='left:0;top:1046px;width:1080px;text-align:center;padding-left:.42em';ao.textContent='ao';
+$('stage').appendChild(ao);
+
+// cards
+const cardsData=[
+  {n:'01',t:'Branding',p:'Identidade e posicionamento',x:80,y:590,
+   svg:'<circle cx="60" cy="100" r="62" pathLength="1"/><circle cx="110" cy="100" r="62" pathLength="1"/><circle cx="160" cy="100" r="62" pathLength="1"/>'},
+  {n:'02',t:'Design',p:'Sistemas visuais e editorial',x:560,y:590,
+   svg:'<rect x="20" y="20" width="160" height="160" pathLength="1"/><path d="M20 100H180M100 20V180" pathLength="1"/><path d="M20 180L180 20" pathLength="1"/><circle cx="100" cy="100" r="34" pathLength="1"/>'},
+  {n:'03',t:'Conteúdo',p:'Narrativa para redes e marca',x:80,y:1110,
+   svg:'<rect x="40" y="10" width="120" height="170" rx="18" pathLength="1"/><rect x="26" y="26" width="120" height="170" rx="18" pathLength="1"/><rect x="12" y="42" width="120" height="170" rx="18" pathLength="1"/>'},
+  {n:'04',t:'Audiovisual',p:'Motion, vídeo e direção',x:560,y:1110,
+   svg:'<circle cx="100" cy="100" r="86" pathLength="1"/><path d="M82 66L140 100L82 134Z" pathLength="1"/><path d="M-20 100H0M200 100H220" pathLength="1"/>'},
+];
+const cardEls=cardsData.map(c=>{
+  const d=document.createElement('div');d.className='abs glass card';d.style.left=c.x+'px';d.style.top=c.y+'px';
+  d.innerHTML=`<div class="spec"></div><div class="n">${c.n}</div><div class="arr">↗</div>
+    <svg viewBox="0 0 200 200">${c.svg}</svg><h3>${c.t}</h3><p>${c.p}</p>`;
+  $('cards').appendChild(d);
+  return {el:d,paths:[...d.querySelectorAll('svg *')],spec:d.querySelector('.spec')};
+});
+
+// grain texture
+(function(){
+  const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');
+  const id=x.createImageData(256,256);
+  let s=7;const rnd=()=>{s=(s*16807)%2147483647;return s/2147483647};
+  for(let i=0;i<id.data.length;i+=4){const v=rnd()*255;id.data[i]=id.data[i+1]=id.data[i+2]=v;id.data[i+3]=255}
+  x.putImageData(id,0,0);$('grain').style.backgroundImage=`url(${c.toDataURL()})`;
+})();
+
+/* ---------- background canvas ---------- */
+const cv=$('bg'),cx=cv.getContext('2d');
+let sd=11;const rnd=()=>{sd=(sd*16807)%2147483647;return sd/2147483647};
+const dust=Array.from({length:70},()=>({x:rnd()*W,y:rnd()*H,z:.3+rnd()*.9,p:rnd()*6.28,sp:.2+rnd()*.6}));
+
+// orb anchors: [time, x, y, radius, alpha]
+const orbs=[
+  {c:[36,81,181],k:[[0,540,980,640,.55],[3.6,820,1500,720,.5],[8.2,260,520,700,.5],[11.6,540,820,820,.62],[T,540,860,860,.66]]},
+  {c:[147,197,253],k:[[0,540,960,300,.22],[3.6,300,700,380,.16],[8.2,860,1300,420,.16],[11.6,540,720,420,.24],[T,540,740,440,.26]]},
+  {c:[27,58,130],k:[[0,200,300,700,.5],[3.6,900,300,760,.45],[8.2,900,1500,760,.45],[11.6,200,1500,760,.5],[T,200,1480,760,.5]]},
+];
+function orbAt(o,t){
+  const k=o.k;let i=0;while(i<k.length-2&&t>k[i+1][0])i++;
+  const a=k[i],b=k[i+1],e=ioC(seg(t,a[0],b[0]));
+  return [0,1,2,3,4].map(j=>j?lerp(a[j],b[j],e):0).slice(1);
+}
+function sweep(t,t0,dur=1.1,amp=1){
+  const p=seg(t,t0,t0+dur);if(p<=0||p>=1)return;
+  const e=ioC(p);const x=lerp(-500,W+500,e);
+  cx.save();cx.translate(x,H/2);cx.rotate(-.42);
+  const g=cx.createLinearGradient(-160,0,160,0);
+  g.addColorStop(0,'rgba(147,197,253,0)');g.addColorStop(.5,`rgba(214,232,255,${.5*amp*Math.sin(p*Math.PI)})`);g.addColorStop(1,'rgba(147,197,253,0)');
+  cx.fillStyle=g;cx.fillRect(-160,-H,320,H*2);cx.restore();
+}
+function drawBg(t){
+  cx.globalCompositeOperation='source-over';cx.fillStyle='#030912';cx.fillRect(0,0,W,H);
+  cx.globalCompositeOperation='lighter';
+  orbs.forEach((o,i)=>{
+    let [x,y,r,a]=orbAt(o,t);
+    x+=Math.sin(t*.5+i*2)*40;y+=Math.cos(t*.4+i)*50;
+    const g=cx.createRadialGradient(x,y,0,x,y,r);
+    g.addColorStop(0,`rgba(${o.c},${a})`);g.addColorStop(.5,`rgba(${o.c},${a*.35})`);g.addColorStop(1,`rgba(${o.c},0)`);
+    cx.fillStyle=g;cx.fillRect(0,0,W,H);
+  });
+  // grid: vertical hairlines drawing in
+  const gp=oQ(seg(t,.2,1.8));
+  cx.globalCompositeOperation='source-over';
+  cx.strokeStyle='rgba(147,197,253,0.07)';cx.lineWidth=1;
+  for(let i=0;i<=6;i++){const x=96+i*148;cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,H*gp);cx.stroke()}
+  // light beam (always breathing, strongest in finale)
+  cx.globalCompositeOperation='lighter';
+  const ba=.10+.08*Math.sin(t*.8)+.14*seg(t,11.4,13);
+  cx.save();cx.translate(W*.5+Math.sin(t*.3)*120,-100);cx.rotate(.22+Math.sin(t*.25)*.05);
+  const bg=cx.createLinearGradient(-220,0,220,0);
+  bg.addColorStop(0,'rgba(80,140,255,0)');bg.addColorStop(.5,`rgba(147,197,253,${ba})`);bg.addColorStop(1,'rgba(80,140,255,0)');
+  cx.fillStyle=bg;cx.fillRect(-220,0,440,H*1.3);cx.restore();
+  // horizontal light line (intro)
+  const hp=seg(t,.15,1.4),hf=1-seg(t,2.9,3.5);
+  if(hp>0&&hf>0){
+    const e=oQ(hp),len=W*e;const y=960;
+    const g=cx.createLinearGradient(W/2-len/2,0,W/2+len/2,0);
+    g.addColorStop(0,'rgba(147,197,253,0)');g.addColorStop(.5,`rgba(235,244,255,${.95*hf})`);g.addColorStop(1,'rgba(147,197,253,0)');
+    cx.fillStyle=g;cx.fillRect(W/2-len/2,y-1,len,2);
+    const gg=cx.createRadialGradient(W/2,y,0,W/2,y,len/2);
+    gg.addColorStop(0,`rgba(120,170,255,${.35*hf})`);gg.addColorStop(1,'rgba(120,170,255,0)');
+    cx.save();cx.translate(0,y);cx.scale(1,.06);cx.translate(0,-y);cx.fillStyle=gg;cx.fillRect(0,y-len,W,len*2);cx.restore();
+  }
+  // transitions
+  sweep(t,3.1,1.1);sweep(t,7.7,1.1,.9);sweep(t,11.1,1.2,1);
+  // dust
+  dust.forEach(d=>{
+    const y=((d.y-t*18*d.z)%H+H)%H,x=d.x+Math.sin(t*d.sp+d.p)*24;
+    const a=(.25+.25*Math.sin(t*1.3*d.sp+d.p))*d.z;
+    cx.fillStyle=`rgba(191,219,254,${a})`;cx.beginPath();cx.arc(x,y,1.1*d.z+.4,0,6.283);cx.fill();
+  });
+}
+
+/* ---------- specular sweep for glass ---------- */
+function spec(el,p,a=.5){ // p 0..1 position of highlight
+  const x=lerp(-60,160,p);
+  el.style.background=`linear-gradient(115deg,transparent ${x-14}%,rgba(255,255,255,${.28*a}) ${x-3}%,rgba(191,219,254,${.5*a}) ${x}%,rgba(255,255,255,${.12*a}) ${x+4}%,transparent ${x+16}%)`;
+}
+
+/* ---------- master timeline ---------- */
+function render(t){
+  drawBg(t);
+
+  // HUD
+  const sc=t<3.7?1:t<8.2?2:t<11.6?3:4;
+  $('hudR').textContent=`0${sc} / 04`;
+  tf($('hudL'),{o:oQ(seg(t,.8,1.6))});
+  tf($('hudR'),{o:oQ(seg(t,.8,1.6))});
+  $('barfill').style.width=(t/T*100)+'%';
+
+  /* S1 — wordmark in glass */
+  {
+    const inn=ioC(seg(t,.7,2.0)),out=ioC(seg(t,3.15,3.85));
+    const o=inn*(1-out);
+    tf($('slab'),{y:lerp(50,0,inn)-out*60,s:lerp(.9,1,inn)+out*.1,ry:lerp(-16,0,inn)+out*10,o});
+    spec($('slabSpec'),seg(t,2.1,3.3),inn);
+    duskL.forEach((l,i)=>{
+      const k=oQ(seg(t,1.45+i*.13,2.45+i*.13));
+      tf(l,{y:lerp(46,0,k)-out*50,o:k*(1-out),b:lerp(22,0,k)+out*14,s:lerp(1.06,1,k)});
+    });
+    tf($('sub1'),{y:lerp(24,0,oQ(seg(t,2.3,3.1)))-out*30,o:oQ(seg(t,2.3,3.1))*(1-out),b:lerp(10,0,oQ(seg(t,2.3,3.1)))});
+  }
+
+  /* S2 — manifesto */
+  {
+    const out=ioC(seg(t,7.65,8.35));
+    const inA=ioC(seg(t,3.7,5.2));
+    tf($('shardA'),{x:lerp(140,0,inA)+Math.sin(t*.7)*14,y:lerp(160,0,inA)-out*240+Math.cos(t*.6)*18,r:8-out*6,ry:lerp(-20,-10,inA),o:inA*(1-out)});
+    spec($('specA'),seg(t,4.4,7.4),inA);
+    const inB=ioC(seg(t,4.2,5.6));
+    tf($('shardB'),{x:lerp(-120,0,inB)+Math.cos(t*.8)*12,y:lerp(120,0,inB)-out*180+Math.sin(t*.7)*16,r:-10,ry:12,o:inB*(1-out)});
+    spec($('specB'),seg(t,5.0,7.6),inB);
+    const lo=oQ(seg(t,3.9,4.6));
+    tf($('lab2'),{x:lerp(-30,0,lo)-out*40,o:lo*(1-out),b:lerp(8,0,lo)});
+    headWords.forEach((w,i)=>{
+      const k=wordIn(t,4.05+i*.14,.95);
+      const ko=oQ(seg(t,7.65+i*.03,8.25+i*.03));
+      tf(w,{y:lerp(60,0,k)-ko*70,o:k*(1-ko),b:lerp(18,0,k)+ko*12});
+    });
+    serifEls.forEach((s,i)=>{s.style.backgroundPosition=`${lerp(100,0,seg(t,4.5,8.2))+i*8}% 0`});
+  }
+
+  /* S3 — services */
+  {
+    const out=oQ(seg(t,10.95,11.65));
+    const l=oQ(seg(t,8.35,9.0));
+    tf($('lab3'),{x:lerp(-30,0,l)-out*40,o:l*(1-out),b:lerp(8,0,l)});
+    const tt=oQ(seg(t,8.5,9.4));
+    tf($('tit3'),{y:lerp(50,0,tt)-out*60,o:tt*(1-out),b:lerp(16,0,tt)+out*10});
+    cardEls.forEach((c,i)=>{
+      const k=ioC(seg(t,8.75+i*.2,9.85+i*.2)),ko=ioC(seg(t,10.8+i*.07,11.55+i*.07));
+      tf(c.el,{y:lerp(140,0,k)-ko*90+Math.sin(t*.9+i)*6,rx:lerp(26,0,k),s:lerp(.93,1,k),o:k*(1-ko)});
+      spec(c.spec,seg(t,9.5+i*.25,11.2+i*.25),k);
+      const dp=oQ(seg(t,9.2+i*.2,10.7+i*.2));
+      c.paths.forEach((p,j)=>{
+        const q=oQ(seg(t,9.2+i*.2+j*.12,10.4+i*.2+j*.12));
+        p.style.strokeDasharray='1';p.style.strokeDashoffset=String(1-q);
+      });
+    });
+  }
+
+  /* S4 — welcome */
+  {
+    const inn=ioC(seg(t,11.55,12.9));
+    tf($('orbGlass'),{s:lerp(.6,1,inn)+Math.sin(t*.8)*.015,o:inn*.8,y:Math.sin(t*.7)*10});
+    spec($('specO'),seg(t,12.2,14.4),inn);
+    welcomeW.forEach((w,i)=>{
+      const k=wordIn(t,11.9+i*.22,1.0);
+      tf(w,{y:lerp(70,0,k),o:k,b:lerp(22,0,k),s:lerp(1.05,1,k)});
+    });
+    const ak=oQ(seg(t,12.9,13.5));
+    tf(ao,{y:lerp(16,0,ak),o:ak,b:lerp(8,0,ak)});
+    finalL.forEach((l,i)=>{
+      const k=oQ(seg(t,13.0+i*.11,13.9+i*.11));
+      tf(l,{y:lerp(50,0,k),o:k,b:lerp(20,0,k),s:lerp(1.08,1,k)});
+    });
+    const pk=oQ(seg(t,14.0,14.8));
+    tf($('pill'),{y:lerp(40,0,pk),o:pk});
+  }
+}
+window.render=render;window.TOTAL=T;
+document.fonts.ready.then(()=>{window.READY=true;render(+(new URLSearchParams(location.search).get('t')||0))});
+</script>
+</body>
+</html>
