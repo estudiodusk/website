@@ -13,7 +13,7 @@ const launch = () => chromium.launch({ executablePath: exe, args: ['--no-sandbox
 
 async function page(b) {
   const p = await b.newPage({ viewport: { width: 1080, height: 1920 } });
-  await p.goto(url); await p.waitForFunction(() => window.READY);
+  await p.goto(url); await p.waitForFunction(() => window.READY); globalThis.TOTAL = await p.evaluate(() => window.TOTAL);
   return p;
 }
 
@@ -25,10 +25,16 @@ if (process.argv[2] === '--stills') {
   await b.close(); process.exit(0);
 }
 
+if (process.argv[2] === '--cues') {
+  const b = await launch(); const p = await page(b);
+  const cues = await p.evaluate(() => ({ ...window.TL }));
+  const { writeFileSync } = await import('fs');
+  writeFileSync(path.join(dir, 'timeline.json'), JSON.stringify(cues, null, 1)); await b.close(); console.log('timeline.json'); process.exit(0);
+}
 const outFile = process.argv[2] || path.join(dir, 'dusk-intro.mp4');
 const fps = +(process.argv[3] || 30), workers = +(process.argv[4] || 4);
 const tmp = path.join(dir, '.frames'); rmSync(tmp, { recursive: true, force: true }); mkdirSync(tmp);
-const total = Math.round(15.6 * fps);
+const total = Math.round(TOTAL * fps);
 const b = await launch();
 await Promise.all(Array.from({ length: workers }, async (_, w) => {
   const p = await page(b);
